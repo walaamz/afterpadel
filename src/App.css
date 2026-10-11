@@ -1,0 +1,213 @@
+
+:root {
+  --cream: #f3f1df;
+  --sage: #8e9f85;
+  --card: #cdd1ba;
+  --dark-green: #40543c;
+  --blue: #617d98;
+}
+
+.app {
+  min-height: 100vh;
+  background: var(--cream);
+}
+
+.site-header {
+  background: var(--cream);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: auto;
+  min-height: 95px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  background: var(--sage);
+  color: white;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: bold;
+}
+
+.brand-name {
+  color: var(--sage);
+  font-size: 25px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 70px;
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.account button {
+  border: none;
+  background: transparent;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navigation {
+  background: var(--sage);
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px 30px;
+  display: flex;
+  gap: 45px;
+}
+
+.nav-content a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.nav-content a:hover {
+  text-decoration: underline;
+}
+
+.dashboard {
+  max-width: 1200px;
+  margin: auto;
+  padding: 30px;
+}
+
+.welcome {
+  text-align: center;
+  margin: 0 auto 95px;
+}
+
+.welcome h1 {
+  color: var(--blue);
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.welcome p {
+  color: var(--blue);
+  font-style: italic;
+  margin-bottom: 28px;
+}
+
+.primary-button {
+  background: #9aaa90;
+  color: white;
+  border: none;
+  border-radius: 22px;
+  padding: 17px 55px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background: #819475;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 65px;
+}
+
+.dashboard-card {
+  background: var(--card);
+  border-radius: 42px;
+  padding: 22px 25px;
+  min-height: 285px;
+  color: var(--dark-green);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card h2 {
+  font-size: 16px;
+  text-align: center;
+  margin: 0;
+}
+
+.card-divider {
+  width: 65%;
+  height: 1px;
+  background: var(--cream);
+  margin: 18px auto 25px;
+}
+
+.reflection-entry {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.card-link {
+  color: var(--dark-green);
+  font-style: italic;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+  margin-top: auto;
+}
+
+.card-description {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.progress-item {
+  font-weight: 600;
+  margin: 0 0 22px;
+}
+
+.progress-item span {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  margin-top: 5px;
+}
+
+.progress-note {
+  margin-top: auto;
+  font-size: 11px;
+  font-style: italic;
+}
+
+@media (max-width: 850px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .nav-content {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .welcome {
+    margin-bottom: 45px;
+  }
+
+  .account {
+    gap: 15px;
+  }
+}
