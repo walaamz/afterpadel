@@ -1,75 +1,118 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# AfterPadel
 
-Currently, two official plugins are available:
+AfterPadel is a web-based padel performance journal designed to help players reflect on their sessions, document their experiences, and develop a structured record of their performance over time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The application follows a four-stage approach: **Play → Reflect → Understand → Improve**.
 
-## React Compiler
+## Project Overview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+AfterPadel is being developed as a Human-Centered Design and Development capstone project. Its purpose is to support structured post-session reflection, allowing players to document their strengths, challenges, decisions, and areas for improvement.
 
-## Expanding the ESLint configuration
+The current implementation is a functional frontend prototype built with React and TypeScript.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Technologies Used
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React
+- TypeScript
+- Vite
+- React Router
+- CSS
+- Browser Session Storage and Local Storage
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Implemented Features
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Dashboard and application navigation
+- Session details form with multiple session types
+- Four guided reflection questions
+- Simulated AI follow-up questions
+- Preservation of reflection responses during navigation
+- Review and editing of responses before approval
+- Saving approved reflections to browser local storage
+- Navigation to the Journal after submission
 
+## Features Under Development
+
+- AI-generated contextual follow-up questions
+- Curated padel knowledge bank
+- Journal history and individual reflection viewing
+- Performance insights and progress tracking
+- Optional coach feedback and comparison
+- Backend and database integration
+
+## Installation and Setup
+
+### Prerequisites
+
+Install Node.js and npm before running the application.
+
+This project was developed using Node.js 24 and npm 11.
+
+### Run Locally
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/walaamz/afterpadel.git
+   ```
+
+2. Navigate into the project:
+
+   ```bash
+   cd afterpadel
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open the local URL displayed in the terminal, typically:
+
+   http://localhost:5173/
+
+### Production Build
+
+To verify that the project compiles successfully:
+
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+To preview the production build:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run preview
 ```
+
+## How to Use
+
+1. Open the Dashboard and select **Reflect on a Match**.
+2. Enter session details, including session type and date.
+3. Complete the four guided reflection questions.
+4. Respond to or skip the simulated follow-up questions.
+5. Review and edit responses before approving.
+6. Select **Approve & Save** to store the reflection.
+
+## Current Limitations
+
+This implementation is a frontend prototype. AI follow-up questions are currently predefined rather than generated by a live language model.
+
+Saved reflections are stored in the browser's local storage rather than a centralized database. Consequently, saved data is specific to the browser and device being used.
+
+The Journal, Progress, Coach, and Profile sections are not yet fully implemented.
+
+## AI-Assisted Development
+
+Generative AI was used to support frontend development, React component implementation, routing, state management, debugging, and documentation. The generated code was incorporated into the project and tested through the local development environment.
+
+## Project Status
+
+Active development — functional reflection workflow implemented.
