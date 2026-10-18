@@ -403,3 +403,122 @@
 .review-page .session-actions {
   margin-top: 20px;
 }
+
+/* Updated AfterPadel color palette */
+
+/* Reflection cards */
+.session-card {
+  background: var(--card);
+  color: var(--blue);
+}
+
+/* Orange page headings */
+.session-card h1 {
+  color: var(--orange);
+}
+
+/* Session type radio buttons */
+.session-option input {
+  border-color: var(--cream);
+  background: var(--cream);
+}
+
+.session-option input:checked {
+  border: 2px solid white;
+  background: var(--blue);
+}
+
+/* Session input fields */
+.field input {
+  background: var(--cream);
+  border: 1px solid var(--input-border);
+  color: var(--blue);
+}
+
+/* Reflection text areas */
+.reflection-textarea {
+  background: var(--cream);
+  color: var(--blue);
+  border: 1px solid var(--input-border);
+}
+
+/* AI follow-up sections */
+.ai-followup,
+.review-followup {
+  background: var(--pale-blue);
+  border: 1px solid var(--input-border);
+}
+
+/* Stepper */
+.step.active .step-number {
+  background: var(--blue);
+}
+
+/* Continue button */
+.continue-button {
+  background: var(--sage);
+  color: white;
+}
+
+
+/* Session Satisfaction */
+
+.review-satisfaction {
+  margin: 24px 0;
+  padding: 20px;
+  background: var(--cream);
+  border: 1px solid var(--blue);
+  border-radius: 18px;
+  color: var(--blue);
+}
+
+.review-satisfaction h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.review-satisfaction p {
+  margin: 0 0 16px;
+  font-size: 13px;
+}
+
+.review-satisfaction p span {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.satisfaction-options {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+
+.satisfaction-dot {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 2px solid var(--sage);
+  border-radius: 50%;
+  background: #deded6;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.satisfaction-dot.selected {
+  background: var(--sage);
+}
+
+.satisfaction-dot:hover {
+  border-color: var(--blue);
+}
+
+.satisfaction-dot:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.satisfaction-label {
+  font-size: 12px;
+  font-weight: 600;
+}

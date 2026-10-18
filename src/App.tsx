@@ -2,11 +2,18 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router'
 import NewReflection from './pages/NewReflection'
 import GuidedReflection from './pages/GuidedReflection'
 import ReviewReflection from './pages/ReviewReflection'
+import Journal from "./pages/Journal";
+import ReflectionSaved from './pages/ReflectionSaved'
+import Profile from "./pages/Profile";
+import Progress from "./pages/Progress";
+import { useState } from 'react'
+
 
 import './App.css'
 
 function App() {
   const navigate = useNavigate()
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   return (
     <div className="app">
       <header className="site-header">
@@ -17,10 +24,78 @@ function App() {
           </div>
 
           <div className="account">
-            <span>User123</span>
-            <button type="button">Sign Out</button>
+  <span>User123</span>
+
+  <div className="notification-container">
+    <button
+      type="button"
+      className="notification-bell"
+      aria-label="Notifications"
+      aria-expanded={notificationsOpen}
+      onClick={() => setNotificationsOpen(!notificationsOpen)}
+    >
+      <svg
+        width="21"
+        height="21"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
+      </svg>
+
+      <span className="notification-badge">3</span>
+    </button>
+
+    {notificationsOpen && (
+      <div className="notification-dropdown">
+        <div className="notification-header">
+          <h3>Notifications</h3>
+          <span>3 new</span>
+        </div>
+
+        <div className="notification-item unread">
+          <div className="notification-item-icon">✓</div>
+          <div>
+            <strong>Reflection saved</strong>
+            <p>Your latest reflection has been added to your Journal.</p>
+            <small>Just now</small>
           </div>
         </div>
+
+        <div className="notification-item unread">
+          <div className="notification-item-icon">★</div>
+          <div>
+            <strong>New milestone!</strong>
+            <p>You've completed 5 reflections. Keep up the consistency!</p>
+            <small>2 hours ago</small>
+          </div>
+        </div>
+
+        <div className="notification-item unread">
+          <div className="notification-item-icon">◎</div>
+          <div>
+            <strong>Next session focus</strong>
+            <p>Remember to practice your back glass defense.</p>
+            <small>Yesterday</small>
+          </div>
+        </div>
+
+        <div className="notification-footer">
+          <span>You're all caught up after reading these.</span>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <button type="button">Sign Out</button>
+</div>
+  </div>
       </header>
 
       <nav className="navigation">
@@ -116,10 +191,11 @@ function App() {
   path="/reflection/review"
   element={<ReviewReflection />}
 />
-  <Route path="/journal" element={<main className="dashboard"><h1>Journal</h1></main>} />
-  <Route path="/progress" element={<main className="dashboard"><h1>Progress</h1></main>} />
+  <Route path="/journal" element={<Journal />} />
+  <Route path="/progress" element={<Progress />} />
   <Route path="/coach" element={<main className="dashboard"><h1>Coach</h1></main>} />
-  <Route path="/profile" element={<main className="dashboard"><h1>Profile</h1></main>} />
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/reflection/saved" element={<ReflectionSaved />} />
 </Routes>
     </div>
   )

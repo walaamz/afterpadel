@@ -1,0 +1,117 @@
+
+.reflection-saved-page {
+  min-height: calc(100vh - 140px);
+  background: var(--cream);
+  padding: 75px 20px 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.reflection-saved-card {
+  width: min(100%, 650px);
+  min-height: 600px;
+  padding: 35px 34px 45px;
+  border-radius: 45px;
+  background: var(--card);
+  color: var(--blue);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.saved-checkmark {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 55px;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.reflection-saved-card h1 {
+  font-size: 25px;
+  margin: 0 0 5px;
+}
+
+.saved-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 32px;
+}
+
+.saved-information {
+  width: 100%;
+  padding: 15px 18px 22px;
+  background: var(--cream);
+  border: 1px solid var(--blue);
+  border-radius: 18px;
+  text-align: left;
+  margin-bottom: 35px;
+}
+
+.saved-information h2 {
+  font-size: 16px;
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+.saved-information p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.saved-information p:last-child {
+  margin-bottom: 0;
+}
+
+.saved-journal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  border-radius: 15px;
+  background: var(--sage);
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.saved-journal-button:hover {
+  background: #788d70;
+}
+
+.saved-dashboard-link {
+  color: var(--blue);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.saved-dashboard-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .reflection-saved-page {
+    padding: 35px 15px;
+  }
+
+  .reflection-saved-card {
+    min-height: auto;
+    padding: 30px 20px 40px;
+    border-radius: 30px;
+  }
+
+  .reflection-saved-card h1 {
+    font-size: 21px;
+  }
+}

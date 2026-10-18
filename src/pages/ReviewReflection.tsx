@@ -28,6 +28,7 @@ type SavedReflection = {
   createdAt: string
   session: SessionDetails
   answers: ReflectionAnswer[]
+  satisfaction?: number
 }
 
 function readSession(): SessionDetails | null {
@@ -62,6 +63,8 @@ export default function ReviewReflection() {
   const [session] = useState(readSession)
   const [answers, setAnswers] = useState(readAnswers)
   const [error, setError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [satisfaction, setSatisfaction] = useState<number | null>(null)
 
   function updateAnswer(
     index: number,
@@ -84,44 +87,90 @@ export default function ReviewReflection() {
     })
   }
 
-  function handleApprove() {
-    if (!session) {
-      setError('Session details are missing. Please start a new reflection.')
-      return
+  
+async function handleApprove() {
+  if (isSaving) return
+
+  if (!session) {
+    setError('Session details are missing. Please start a new reflection.')
+    return
+  }
+
+  if (answers.some((item) => !item.answer.trim())) {
+    setError('Please complete all four reflection questions before saving.')
+    return
+  }
+
+  setError('')
+  setIsSaving(true)
+
+  const backendReflection = {
+    sessionType: session.sessionType,
+    date: session.date,
+    duration: session.duration ? Number(session.duration) : null,
+    score: session.score || null,
+    sessionFocus: session.sessionFocus || null,
+    wentWell: answers[0].answer,
+    wentWellFollowUp: answers[0].followUp,
+    struggledWith: answers[1].answer,
+    struggledWithFollowUp: answers[1].followUp,
+    doDifferently: answers[2].answer,
+    doDifferentlyFollowUp: answers[2].followUp,
+    nextFocus: answers[3].answer,
+    nextFocusFollowUp: answers[3].followUp,
+    satisfaction,
+  }
+
+  try {
+    const existing = localStorage.getItem('afterpadel-journal')
+    const parsed = existing ? JSON.parse(existing) : []
+    const journal: SavedReflection[] = Array.isArray(parsed) ? parsed : []
+    const isFirstReflection = journal.length === 0
+
+    const response = await fetch('http://localhost:8080/api/reflections', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(backendReflection),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`)
     }
 
-    if (answers.some((item) => !item.answer.trim())) {
-      setError('Please complete all four reflection questions before saving.')
-      return
-    }
+    const saved = await response.json()
 
     const reflection: SavedReflection = {
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
+      id: String(saved.id),
+      createdAt: saved.createdAt,
       session,
       answers,
+      ...(satisfaction !== null ? { satisfaction } : {}),
     }
 
-    try {
-      const existing = localStorage.getItem('afterpadel-journal')
-      const parsed = existing ? JSON.parse(existing) : []
-      const journal: SavedReflection[] = Array.isArray(parsed) ? parsed : []
+    localStorage.setItem(
+      'afterpadel-journal',
+      JSON.stringify([reflection, ...journal])
+    )
 
-      localStorage.setItem(
-        'afterpadel-journal',
-        JSON.stringify([reflection, ...journal])
-      )
+    sessionStorage.removeItem('afterpadel-session')
+    sessionStorage.removeItem('afterpadel-answers')
+    sessionStorage.removeItem('afterpadel-followups-shown')
+    sessionStorage.removeItem('afterpadel-question-index')
 
-      sessionStorage.removeItem('afterpadel-session')
-      sessionStorage.removeItem('afterpadel-answers')
-      sessionStorage.removeItem('afterpadel-followups-shown')
-      sessionStorage.removeItem('afterpadel-question-index')
-
-      navigate('/journal')
-    } catch {
-      setError('Unable to save your reflection. Please try again.')
-    }
+    navigate('/reflection/saved', {
+      replace: true,
+      state: { isFirstReflection },
+    })
+  } catch (error) {
+    console.error('Failed to save reflection:', error)
+    setError('Unable to save your reflection. Please try again.')
+  } finally {
+    setIsSaving(false)
   }
+}
+
 
   if (!session) {
     return (
@@ -239,6 +288,49 @@ export default function ReviewReflection() {
           ))}
         </div>
 
+          
+<div className="review-satisfaction">
+  <h2>Session Satisfaction</h2>
+  <p>
+    How satisfied did you feel with your overall session?
+    <span> (Optional)</span>
+  </p>
+
+  <div
+    className="satisfaction-options"
+    role="group"
+    aria-label="Rate your session satisfaction"
+  >
+    {[1, 2, 3, 4, 5].map((rating) => (
+      <button
+        key={rating}
+        type="button"
+        className={
+          rating <= (satisfaction ?? 0)
+            ? "satisfaction-dot selected"
+            : "satisfaction-dot"
+        }
+        aria-label={`${rating} out of 5`}
+        aria-pressed={satisfaction === rating}
+        onClick={() =>
+          setSatisfaction((current) =>
+            current === rating ? null : rating
+          )
+        }
+      />
+    ))}
+  </div>
+
+  <span className="satisfaction-label">
+    {satisfaction === null
+      ? "Not rated"
+      : `${satisfaction}/5 · ${
+          ["", "Very dissatisfied", "Dissatisfied", "Neutral",
+           "Satisfied", "Very satisfied"][satisfaction]
+        }`}
+  </span>
+</div>
+
         {error && <p className="review-error" role="alert">{error}</p>}
 
         <div className="session-actions">
@@ -254,9 +346,10 @@ export default function ReviewReflection() {
             type="button"
             className="continue-button"
             onClick={handleApprove}
+            disabled={isSaving}
           >
-            Approve & Save →
-          </button>
+            {isSaving ? 'Saving...' : 'Approve & Save →'}
+        </button>
         </div>
       </section>
     </main>
