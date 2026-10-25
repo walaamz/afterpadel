@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import ReflectionModal from "../components/ReflectionModal";
+import ReflectionModal, {
+  type ReflectionEntry,
+} from "../components/ReflectionModal";
 import "./Journal.css";
 
 
@@ -25,12 +27,24 @@ type JournalEntry = {
   satisfaction?: number
 }
 
-const questions = [
-  "What went well during your session?",
-  "What did you struggle with?",
-  "Was there a moment you would approach differently?",
-  "What would you like to focus on next time?",
-]
+type ApiReflection = {
+  id: number;
+  createdAt: string;
+  sessionType: string;
+  date: string;
+  duration: number | null;
+  score: string | null;
+  sessionFocus: string | null;
+  wentWell: string | null;
+  struggledWith: string | null;
+  doDifferently: string | null;
+  nextFocus: string | null;
+  wentWellFollowUp: string | null;
+  struggledWithFollowUp: string | null;
+  doDifferentlyFollowUp: string | null;
+  nextFocusFollowUp: string | null;
+  satisfaction: number | null;
+};
 
 const filters = [
   "All",
@@ -83,6 +97,42 @@ function getSessionLabel(type?: string) {
   return type;
 }
 
+function mapApiReflection(reflection: ApiReflection): JournalEntry {
+  return {
+    id: String(reflection.id),
+    createdAt: reflection.createdAt,
+    session: {
+      sessionType: reflection.sessionType,
+      date: reflection.date,
+      duration:
+        reflection.duration != null
+          ? String(reflection.duration)
+          : "",
+      score: reflection.score || "",
+      sessionFocus: reflection.sessionFocus || "",
+    },
+    answers: [
+      {
+        answer: reflection.wentWell || "",
+        followUp: reflection.wentWellFollowUp || "",
+      },
+      {
+        answer: reflection.struggledWith || "",
+        followUp: reflection.struggledWithFollowUp || "",
+      },
+      {
+        answer: reflection.doDifferently || "",
+        followUp: reflection.doDifferentlyFollowUp || "",
+      },
+      {
+        answer: reflection.nextFocus || "",
+        followUp: reflection.nextFocusFollowUp || "",
+      },
+    ],
+    satisfaction: reflection.satisfaction ?? undefined,
+  };
+}
+
 export default function Journal() {
 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -93,18 +143,114 @@ export default function Journal() {
 
 
   useEffect(() => {
+  async function loadReflections() {
     try {
-      const stored = JSON.parse(
-        localStorage.getItem("afterpadel-journal") || "[]"
-      );
+      const response = await fetch(
+  "http://localhost:8080/api/reflections",
+  {
+    credentials: "include",
+  }
+);
 
-      setEntries(Array.isArray(stored) ? stored : []);
-    } catch {
-      setEntries([]);
+      if (!response.ok) {
+        throw new Error("Failed to load reflections");
+      }
+
+      const data: ApiReflection[] = await response.json();
+
+      setEntries(data.map(mapApiReflection));
+    } catch (error) {
+      console.error("Error loading reflections:", error);
     }
-  }, []);
+  }
 
+  loadReflections();
+}, []);
+
+async function handleDeleteReflection(id: string) {
+  try {
+    const response = await fetch(
+  `http://localhost:8080/api/reflections/${id}`,
+  {
+    method: "DELETE",
+    credentials: "include",
+  }
+);
+
+    if (!response.ok) {
+      throw new Error("Failed to delete reflection");
+    }
+
+    setEntries((previousEntries) =>
+      previousEntries.filter((entry) => entry.id !== id)
+    );
+
+    setSelectedEntry(null);
+  } catch (error) {
+    console.error("Error deleting reflection:", error);
+    window.alert(
+      "Unable to delete this reflection. Please try again."
+    );
+  }
+}
   
+async function handleSaveReflection(updatedEntry: ReflectionEntry) {
+    const payload = {
+    sessionType: updatedEntry.session.sessionType,
+    date: updatedEntry.session.date,
+    duration: updatedEntry.session.duration
+      ? Number(updatedEntry.session.duration)
+      : null,
+    score: updatedEntry.session.score || "",
+    sessionFocus: updatedEntry.session.sessionFocus || "",
+
+    wentWell: updatedEntry.answers[0]?.answer || "",
+    struggledWith: updatedEntry.answers[1]?.answer || "",
+    doDifferently: updatedEntry.answers[2]?.answer || "",
+    nextFocus: updatedEntry.answers[3]?.answer || "",
+
+    wentWellFollowUp: updatedEntry.answers[0]?.followUp || "",
+    struggledWithFollowUp: updatedEntry.answers[1]?.followUp || "",
+    doDifferentlyFollowUp: updatedEntry.answers[2]?.followUp || "",
+    nextFocusFollowUp: updatedEntry.answers[3]?.followUp || "",
+
+    satisfaction: updatedEntry.satisfaction ?? null,
+  };
+
+  try {
+    const response = await fetch(
+  `http://localhost:8080/api/reflections/${updatedEntry.id}`,
+  {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  }
+);
+
+    if (!response.ok) {
+      throw new Error("Failed to update reflection");
+    }
+
+    const savedReflection: ApiReflection = await response.json();
+    const savedEntry = mapApiReflection(savedReflection);
+
+    setEntries((previousEntries) =>
+      previousEntries.map((entry) =>
+        entry.id === savedEntry.id ? savedEntry : entry
+      )
+    );
+
+    setSelectedEntry(savedEntry);
+  } catch (error) {
+    console.error("Error updating reflection:", error);
+    window.alert("Unable to save changes. Please try again.");
+    throw error;
+  }
+}
+
 const latestEntry = [...entries].sort(
   (a, b) =>
     getEntryDate(b) - getEntryDate(a) ||
@@ -243,6 +389,8 @@ const filteredEntries = entries
 <ReflectionModal
   entry={selectedEntry}
   onClose={() => setSelectedEntry(null)}
+  onDelete={handleDeleteReflection}
+  onSave={handleSaveReflection}
 />
     </main>
   );

@@ -63,6 +63,12 @@
   font-style: italic;
 }
 
+.brand-wordmark {
+  width: 100px;
+  height: auto;
+  display: block;
+}
+
 .account {
   display: flex;
   align-items: center;
@@ -154,6 +160,33 @@
   color: #ffe0c9;
   display: flex;
   flex-direction: column;
+
+  /* Muted appearance */
+  filter: grayscale(25%) brightness(0.95);
+  opacity: 0.85;
+
+  /* Smooth hover animation */
+  transform: scale(1);
+  transition:
+    transform 0.3s ease,
+    filter 0.3s ease,
+    opacity 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover,
+.dashboard-card:focus-within {
+  /* Restore original colors and brightness */
+  filter: grayscale(0%) brightness(1.05);
+  opacity: 1;
+
+  /* Slightly enlarge and lift the card */
+  transform: translateY(-6px) scale(1.035);
+
+  /* Soft shadow to make it stand out */
+  box-shadow: 0 14px 30px rgba(64, 84, 60, 0.2);
+
+  z-index: 1;
 }
 
 .dashboard-card h2 {
@@ -376,4 +409,322 @@
 .account .notification-bell {
   width: 32px;
   height: 32px;
+}
+/* New Reflection navigation button */
+
+.nav-reflection-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-reflection-button:hover {
+  text-decoration: underline;
+}
+
+/* Unfinished reflection modal */
+
+.draft-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 35, 25, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.draft-modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: 34px;
+  border-radius: 24px;
+  background: var(--cream);
+  color: var(--dark-green);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.draft-modal h2 {
+  margin: 0 25px 12px 0;
+  font-size: 22px;
+}
+
+.draft-modal p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.draft-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  color: var(--dark-green);
+  cursor: pointer;
+}
+
+.draft-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.draft-continue-button,
+.draft-new-button {
+  padding: 13px 18px;
+  border-radius: 24px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.draft-continue-button {
+  background: var(--sage);
+  border: 1px solid var(--sage);
+  color: white;
+}
+
+.draft-continue-button:hover {
+  background: var(--dark-green);
+}
+
+.draft-new-button {
+  background: transparent;
+  border: 1px solid var(--sage);
+  color: var(--dark-green);
+}
+
+.draft-new-button:hover {
+  background: #e4e9dd;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-card {
+    transition: none;
+  }
+
+  .dashboard-card:hover,
+  .dashboard-card:focus-within {
+    transform: none;
+  }
+
+}
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+  background: var(--cream);
+}
+
+.app::before,
+.app::after {
+  content: "";
+  position: fixed;
+  top: 170px;
+  width: 32vw;
+  max-width: 520px;
+  height: calc(100vh - 170px);
+
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app::before {
+  left: 0;
+  background-image: url("./assets/padel-left.png");
+}
+
+.app::after {
+  right: 0;
+  background-image: url("./assets/padel-right.png");
+}
+
+.site-header {
+  position: relative;
+  z-index: 100;
+}
+
+.navigation {
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 850px) {
+  .app::before,
+  .app::after {
+    width: 45vw;
+    opacity: 0.15;
+  }
+}
+
+@media (max-width: 600px) {
+  .app::before,
+  .app::after {
+    display: none;
+  }
+}
+
+/* Authentication Pages */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 42px;
+  background: #d1d3bf;
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(64, 84, 60, 0.12);
+  box-sizing: border-box;
+}
+
+.auth-card h1 {
+  margin: 0 0 10px;
+  color: #365e7a;
+  font-size: 30px;
+  text-align: center;
+}
+
+.auth-card > p {
+  color: #617d98;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-card label {
+  color: #40543c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #aeb7a5;
+  border-radius: 9px;
+  background: #f3f1df;
+  color: #40543c;
+  font: inherit;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.auth-card input:focus {
+  outline: 2px solid #8e9f85;
+  outline-offset: 2px;
+}
+
+.auth-card form button {
+  margin-top: 12px;
+  padding: 14px;
+  border: none;
+  border-radius: 9px;
+  background: #d99360;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.auth-card form button:hover:not(:disabled) {
+  background: #c7804f;
+}
+
+.auth-card form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-card form p[role="alert"] {
+  color: #a33e35;
+  font-size: 13px;
+  margin: 0;
+}
+
+.auth-card a {
+  color: #40543c;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.auth-card > p:last-child {
+  margin-top: 25px;
+  margin-bottom: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 30px 22px;
+  }
+
+  .auth-card h1 {
+    font-size: 26px;
+  }
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.auth-brand-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.auth-brand-wordmark {
+  width: 145px;
+  height: auto;
+  object-fit: contain;
 }

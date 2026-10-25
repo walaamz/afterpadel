@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReflectionModal from "../components/ReflectionModal";
 import "./Profile.css";
 
@@ -10,12 +10,71 @@ type JournalEntry = {
   session: {
     sessionType: string;
     date: string;
+    duration?: string;
+    score?: string;
+    sessionFocus?: string;
   };
   answers: {
     answer: string;
     followUp: string;
   }[];
+  satisfaction?: number;
 };
+
+type ApiReflection = {
+  id: number;
+  createdAt: string;
+  sessionType: string;
+  date: string;
+  duration: number | null;
+  score: string | null;
+  sessionFocus: string | null;
+  wentWell: string | null;
+  struggledWith: string | null;
+  doDifferently: string | null;
+  nextFocus: string | null;
+  wentWellFollowUp: string | null;
+  struggledWithFollowUp: string | null;
+  doDifferentlyFollowUp: string | null;
+  nextFocusFollowUp: string | null;
+  satisfaction: number | null;
+};
+
+function mapApiReflection(reflection: ApiReflection): JournalEntry {
+  return {
+    id: String(reflection.id),
+    createdAt: reflection.createdAt,
+    session: {
+      sessionType: reflection.sessionType,
+      date: reflection.date,
+      duration:
+        reflection.duration != null
+          ? String(reflection.duration)
+          : "",
+      score: reflection.score || "",
+      sessionFocus: reflection.sessionFocus || "",
+    },
+    answers: [
+      {
+        answer: reflection.wentWell || "",
+        followUp: reflection.wentWellFollowUp || "",
+      },
+      {
+        answer: reflection.struggledWith || "",
+        followUp: reflection.struggledWithFollowUp || "",
+      },
+      {
+        answer: reflection.doDifferently || "",
+        followUp: reflection.doDifferentlyFollowUp || "",
+      },
+      {
+        answer: reflection.nextFocus || "",
+        followUp: reflection.nextFocusFollowUp || "",
+      },
+    ],
+    satisfaction: reflection.satisfaction ?? undefined,
+  };
+}
 
 const milestones = [
   { name: "First Step", required: 1 },
@@ -33,18 +92,6 @@ const levels = [
   { name: "Reflection Champion", minimum: 25 },
 ];
 
-function loadReflections(): JournalEntry[] {
-  try {
-    const stored = JSON.parse(
-      localStorage.getItem("afterpadel-journal") || "[]"
-    );
-
-    return Array.isArray(stored) ? stored : [];
-  } catch {
-    return [];
-  }
-}
-
 function getWeeklyMemory(reflections: JournalEntry[]) {
   const now = new Date();
 
@@ -52,23 +99,23 @@ function getWeeklyMemory(reflections: JournalEntry[]) {
   const oneWeekAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
 
   const candidates = reflections.flatMap((entry) => {
-    const sessionTime = new Date(
-      entry.session?.date || entry.createdAt
-    ).getTime();
+  const sessionTime = new Date(
+    entry.session?.date || entry.createdAt
+  ).getTime();
 
-    return (entry.answers || [])
-      .map((answer, index) => ({
-        entry,
-        answerIndex: index,
-        text: answer.answer?.trim() || "",
-        sessionTime,
-      }))
-      .filter(
-        (candidate) =>
-          candidate.text.length >= 40 &&
-          candidate.text.split(/\s+/).length >= 7
-      );
-  });
+  // Only consider the answer to "What went well?"
+  const text = entry.answers?.[0]?.answer?.trim() || "";
+
+  if (text.length < 20 || text.split(/\s+/).length < 4) {
+    return [];
+  }
+
+  return [{
+    entry,
+    text,
+    sessionTime,
+  }];
+});
 
   if (candidates.length === 0) {
     return null;
@@ -99,33 +146,61 @@ function getWeeklyMemory(reflections: JournalEntry[]) {
   return eligible[selectedIndex];
 }
 
-export default function Profile() {
-  const [reflections] = useState(loadReflections);
+export default function Profile({ userId }: { userId: number | null }) {
+    const [reflections, setReflections] = useState<JournalEntry[]>([]);
+  useEffect(() => {
+  async function loadReflections() {
+    try {
+      const response = await fetch('http://localhost:8080/api/reflections', {
+  credentials: 'include',
+})
+
+      if (!response.ok) {
+        throw new Error("Failed to load reflections");
+      }
+
+      const data: ApiReflection[] = await response.json();
+
+      setReflections(data.map(mapApiReflection));
+    } catch (error) {
+      console.error("Error loading profile reflections:", error);
+    }
+  }
+
+  loadReflections();
+}, []);
   const [selectedReflection, setSelectedReflection] =
   useState<JournalEntry | null>(null);
 
   
 const [isEditing, setIsEditing] = useState(false);
 
-const [profile, setProfile] = useState(() => {
-  try {
-    const saved = localStorage.getItem("afterpadel-profile");
+const defaultProfile = {
+  username: "User123",
+  experience: "Novice",
+};
 
-    return saved
-      ? JSON.parse(saved)
-      : {
-          username: "User123",
-          experience: "Novice",
-        };
-  } catch {
-    return {
-      username: "User123",
-      experience: "Novice",
-    };
+const [profile, setProfile] = useState(defaultProfile);
+const [draftProfile, setDraftProfile] = useState(defaultProfile);
+
+useEffect(() => {
+  if (userId === null) {
+    setProfile(defaultProfile);
+    setDraftProfile(defaultProfile);
+    return;
   }
-});
 
-const [draftProfile, setDraftProfile] = useState({ ...profile });
+  try {
+    const saved = localStorage.getItem(`afterpadel-profile-${userId}`);
+    const loadedProfile = saved ? JSON.parse(saved) : defaultProfile;
+
+    setProfile(loadedProfile);
+    setDraftProfile(loadedProfile);
+  } catch {
+    setProfile(defaultProfile);
+    setDraftProfile(defaultProfile);
+  }
+}, [userId]);
 
 function handleEdit() {
   setDraftProfile({ ...profile });
@@ -149,12 +224,17 @@ function handleSave() {
     experience: draftProfile.experience,
   };
 
-  localStorage.setItem(
-    "afterpadel-profile",
-    JSON.stringify(updatedProfile)
-  );
+  if (userId === null) {
+  return;
+}
+
+localStorage.setItem(
+  `afterpadel-profile-${userId}`,
+  JSON.stringify(updatedProfile)
+);
 
   setProfile(updatedProfile);
+  window.dispatchEvent(new Event("afterpadel-profile-updated"));
   setIsEditing(false);
 }
 

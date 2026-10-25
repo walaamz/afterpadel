@@ -25,15 +25,18 @@ const questions = [
 type ReflectionAnswer = {
   answer: string
   followUp: string
+  followUpQuestion?: string
 }
 
 const emptyAnswers: ReflectionAnswer[] = questions.map(() => ({
   answer: '',
   followUp: '',
+  followUpQuestion: '',
 }))
 
 export default function GuidedReflection() {
   const navigate = useNavigate()
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const [questionIndex, setQuestionIndex] = useState(() => {
   const saved = sessionStorage.getItem('afterpadel-question-index')
@@ -46,6 +49,10 @@ export default function GuidedReflection() {
     ? index
     : 0
 })
+
+useEffect(() => {
+  sessionStorage.setItem('afterpadel-draft-step', 'guided')
+}, [])
 
     useEffect(() => {
   sessionStorage.setItem(
@@ -89,6 +96,53 @@ function revealFollowUp() {
   })
 }
 
+async function generateFollowUp() {
+  if (isGenerating) return
+
+  setIsGenerating(true)
+
+  try {
+    const response = await fetch('http://localhost:8080/api/followup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        answer: current.answer,
+        question: questions[questionIndex].title,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to generate follow-up')
+    }
+
+    const data: { question: string } = await response.json()
+
+    setAnswers((previous) => {
+      const updated = previous.map((item, index) =>
+        index === questionIndex
+          ? { ...item, followUpQuestion: data.question }
+          : item
+      )
+
+      sessionStorage.setItem(
+        'afterpadel-answers',
+        JSON.stringify(updated)
+      )
+
+      return updated
+    })
+
+    revealFollowUp()
+  } catch (error) {
+    console.error('Follow-up generation failed:', error)
+    alert('Unable to generate a follow-up question. Please try again.')
+  } finally {
+    setIsGenerating(false)
+  }
+}
+
   const current = answers[questionIndex]
 
   function updateAnswer(field: keyof ReflectionAnswer, value: string) {
@@ -108,20 +162,24 @@ function revealFollowUp() {
     })
   }
 
-    function handleContinue() {
-    if (!current.answer.trim()) return
+    async function handleContinue() {
+  if (!current.answer.trim() || isGenerating) return
 
-    if (!showFollowUp) {
-        revealFollowUp()
-        return
+  if (!showFollowUp) {
+    if (current.followUpQuestion) {
+      revealFollowUp()
+    } else {
+      await generateFollowUp()
     }
+    return
+  }
 
-     if (questionIndex < questions.length - 1) {
-         setQuestionIndex((previous) => previous + 1)
-     } else {
-         navigate('/reflection/review')
-     }
-    }
+  if (questionIndex < questions.length - 1) {
+    setQuestionIndex((previous) => previous + 1)
+  } else {
+    navigate('/reflection/review')
+  }
+}
 
     function handleBack() {
      if (questionIndex > 0) {
@@ -185,9 +243,9 @@ function revealFollowUp() {
             </p>
 
             <p className="ai-question">
-              Can you describe a specific moment from your
-              session that made you feel this way?
-            </p>
+  {current.followUpQuestion ||
+    'Can you describe a specific moment from your session?'}
+</p>
 
             <textarea
               className="reflection-textarea followup-textarea"
@@ -231,10 +289,13 @@ function revealFollowUp() {
             type="button"
             className="continue-button"
             onClick={handleContinue}
+            disabled={isGenerating}
           >
-            {questionIndex === 3 && showFollowUp
-              ? 'Review →'
-              : 'Continue →'}
+            {isGenerating
+  ? 'Generating follow-up...'
+  : questionIndex === 3 && showFollowUp
+    ? 'Review →'
+    : 'Continue →'}
           </button>
         </div>
       </section>

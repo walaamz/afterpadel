@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import './NewReflection.css'
 
@@ -64,7 +64,29 @@ export default function ReviewReflection() {
   const [answers, setAnswers] = useState(readAnswers)
   const [error, setError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [satisfaction, setSatisfaction] = useState<number | null>(null)
+  const [satisfaction, setSatisfaction] = useState<number | null>(() => {
+  const saved = sessionStorage.getItem('afterpadel-satisfaction')
+
+  if (saved === null) return null
+
+  const value = Number(saved)
+
+  return Number.isInteger(value) && value >= 1 && value <= 5
+    ? value
+    : null
+})
+useEffect(() => {
+  if (satisfaction !== null) {
+    sessionStorage.setItem(
+      'afterpadel-satisfaction',
+      String(satisfaction)
+    )
+  }
+}, [satisfaction])
+
+  useEffect(() => {
+  sessionStorage.setItem('afterpadel-draft-step', 'review')
+}, [])
 
   function updateAnswer(
     index: number,
@@ -128,12 +150,13 @@ async function handleApprove() {
     const isFirstReflection = journal.length === 0
 
     const response = await fetch('http://localhost:8080/api/reflections', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(backendReflection),
-    })
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(backendReflection),
+})
 
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`)
@@ -158,6 +181,8 @@ async function handleApprove() {
     sessionStorage.removeItem('afterpadel-answers')
     sessionStorage.removeItem('afterpadel-followups-shown')
     sessionStorage.removeItem('afterpadel-question-index')
+    sessionStorage.removeItem('afterpadel-draft-step')
+    sessionStorage.removeItem('afterpadel-satisfaction')
 
     navigate('/reflection/saved', {
       replace: true,

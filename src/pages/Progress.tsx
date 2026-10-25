@@ -15,6 +15,61 @@ type JournalEntry = {
   satisfaction?: number;
 };
 
+type ApiReflection = {
+  id: number;
+  createdAt: string;
+  sessionType: string;
+  date: string;
+  duration: number | null;
+  score: string | null;
+  sessionFocus: string | null;
+  wentWell: string | null;
+  struggledWith: string | null;
+  doDifferently: string | null;
+  nextFocus: string | null;
+  wentWellFollowUp: string | null;
+  struggledWithFollowUp: string | null;
+  doDifferentlyFollowUp: string | null;
+  nextFocusFollowUp: string | null;
+  satisfaction: number | null;
+};
+
+function mapApiReflection(reflection: ApiReflection): JournalEntry {
+  return {
+    id: String(reflection.id),
+    createdAt: reflection.createdAt,
+    session: {
+      sessionType: reflection.sessionType,
+      date: reflection.date,
+      duration:
+        reflection.duration != null
+          ? String(reflection.duration)
+          : "",
+      score: reflection.score || "",
+      sessionFocus: reflection.sessionFocus || "",
+    },
+    answers: [
+      {
+        answer: reflection.wentWell || "",
+        followUp: reflection.wentWellFollowUp || "",
+      },
+      {
+        answer: reflection.struggledWith || "",
+        followUp: reflection.struggledWithFollowUp || "",
+      },
+      {
+        answer: reflection.doDifferently || "",
+        followUp: reflection.doDifferentlyFollowUp || "",
+      },
+      {
+        answer: reflection.nextFocus || "",
+        followUp: reflection.nextFocusFollowUp || "",
+      },
+    ],
+    satisfaction: reflection.satisfaction ?? undefined,
+  };
+}
+
 function entryDate(entry: JournalEntry) {
   const date = new Date(`${entry.session?.date || ""}T12:00:00`);
   if (!Number.isNaN(date.getTime())) return date;
@@ -68,15 +123,138 @@ function findRecurringAnswer(entries: JournalEntry[], answerIndex: number) {
 
 export default function Progress() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [recommendation, setRecommendation] = useState("");
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+  const [recommendationError, setRecommendationError] = useState("");
 
   useEffect(() => {
+  async function loadReflections() {
     try {
-      const stored: unknown = JSON.parse(localStorage.getItem("afterpadel-journal") || "[]");
-      setEntries(Array.isArray(stored) ? (stored as JournalEntry[]) : []);
-    } catch {
-      setEntries([]);
+      const response = await fetch('http://localhost:8080/api/reflections', {
+  credentials: 'include',
+})
+
+      if (!response.ok) {
+        throw new Error("Failed to load reflections");
+      }
+
+      const data: ApiReflection[] = await response.json();
+
+      setEntries(data.map(mapApiReflection));
+    } catch (error) {
+      console.error("Error loading progress reflections:", error);
     }
-  }, []);
+  }
+
+  loadReflections();
+}, []);
+
+useEffect(() => {
+  if (entries.length === 0) return;
+
+  const challenge =
+    findRecurringAnswer(entries, 1)?.count &&
+    findRecurringAnswer(entries, 1)!.count > 1
+      ? findRecurringAnswer(entries, 1)!.text
+      : [...entries]
+          .sort((a, b) => entryDate(b).getTime() - entryDate(a).getTime())[0]
+          ?.answers?.[1]?.answer?.trim() || "";
+
+  const latestEntry = [...entries].sort(
+    (a, b) => entryDate(b).getTime() - entryDate(a).getTime()
+  )[0];
+
+  const nextFocus = latestEntry?.answers?.[3]?.answer?.trim() || "";
+
+  if (!challenge && !nextFocus) {
+  localStorage.removeItem("afterpadel-recommendation");
+  setRecommendation("");
+  setRecommendationError("");
+  setRecommendationLoading(false);
+  return;
+}
+  const cacheKey = "afterpadel-recommendation";
+
+const historySignature = JSON.stringify(
+  [...entries]
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((entry) => ({
+      id: entry.id,
+      session: entry.session,
+      answers: entry.answers,
+    }))
+);
+
+try {
+  const cached = localStorage.getItem(cacheKey);
+
+  if (cached) {
+    const saved = JSON.parse(cached);
+
+    if (
+      saved.historySignature === historySignature &&
+      typeof saved.recommendation === "string"
+    ) {
+      setRecommendation(saved.recommendation);
+      setRecommendationError("");
+      setRecommendationLoading(false);
+      return;
+    }
+  }
+} catch {
+  localStorage.removeItem(cacheKey);
+}
+  const controller = new AbortController();
+
+  async function loadRecommendation() {
+    setRecommendationLoading(true);
+    setRecommendationError("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:8080/api/recommendation",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ challenge, nextFocus }),
+          signal: controller.signal,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate recommendation");
+      }
+
+      const data: { recommendation: string } = await response.json();
+
+if (controller.signal.aborted) return;
+
+setRecommendation(data.recommendation);
+
+localStorage.setItem(
+  cacheKey,
+  JSON.stringify({
+    historySignature,
+    recommendation: data.recommendation,
+  })
+);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      console.error("Recommendation error:", error);
+      setRecommendationError(
+        "We couldn't generate your recommendation right now."
+      );
+    } finally {
+      if (!controller.signal.aborted) {
+        setRecommendationLoading(false);
+      }
+    }
+  }
+
+  loadRecommendation();
+
+  return () => controller.abort();
+}, [entries]);
 
   const ordered = [...entries].sort((a, b) => entryDate(b).getTime() - entryDate(a).getTime());
   const latest = ordered[0];
@@ -91,6 +269,10 @@ export default function Progress() {
   const nextFocus = latest?.answers?.[3]?.answer?.trim() || "";
   const recurringStrength = findRecurringAnswer(entries, 0);
   const recurringChallenge = findRecurringAnswer(entries, 1);
+  const recommendationChallenge =
+  recurringChallenge && recurringChallenge.count > 1
+    ? recurringChallenge.text
+    : latestChallenge;
   const rated = [...entries]
     .filter((entry) => typeof entry.satisfaction === "number" && entry.satisfaction >= 1 && entry.satisfaction <= 5)
     .sort((a, b) => entryDate(a).getTime() - entryDate(b).getTime())
@@ -179,25 +361,29 @@ export default function Progress() {
   <h2>Your Next Focus</h2>
 
   <p className="progress-description">
-    Personalized padel recommendations will appear here
-    once the Padel Knowledge Bank and AI analysis are
-    integrated.
+    A suggested focus for your next session, based on your reflections.
   </p>
 
   <div className="progress-comparison">
     <div className="progress-comparison-block">
       <h3>Personalized Recommendation</h3>
 
-      <p>
-        AfterPadel will review your recurring challenges
-        and suggest a specific technique or drill to
-        focus on during your next session.
-      </p>
+      {recommendationLoading ? (
+        <p>Generating your recommendation...</p>
+      ) : recommendationError ? (
+        <p>{recommendationError}</p>
+      ) : recommendation ? (
+        <p>{recommendation}</p>
+      ) : (
+        <p>
+          Record a challenge or goal in your reflections to receive
+          a personalized recommendation.
+        </p>
+      )}
     </div>
 
     <p className="progress-comparison-note">
-      Coming soon · Recommendations will be based on
-      your reflection history and curated padel guidance.
+      AI-generated guidance based on your self-reported reflections.
     </p>
   </div>
 </section>
