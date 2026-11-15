@@ -266,13 +266,8 @@ localStorage.setItem(
   const latestStrength = latest?.answers?.[0]?.answer?.trim() || "";
   const latestChallenge = latest?.answers?.[1]?.answer?.trim() || "";
   const previousGoal = previous?.answers?.[3]?.answer?.trim() || "";
-  const nextFocus = latest?.answers?.[3]?.answer?.trim() || "";
   const recurringStrength = findRecurringAnswer(entries, 0);
   const recurringChallenge = findRecurringAnswer(entries, 1);
-  const recommendationChallenge =
-  recurringChallenge && recurringChallenge.count > 1
-    ? recurringChallenge.text
-    : latestChallenge;
   const rated = [...entries]
     .filter((entry) => typeof entry.satisfaction === "number" && entry.satisfaction >= 1 && entry.satisfaction <= 5)
     .sort((a, b) => entryDate(a).getTime() - entryDate(b).getTime())

@@ -37,7 +37,7 @@ const emptyAnswers: ReflectionAnswer[] = questions.map(() => ({
 export default function GuidedReflection() {
   const navigate = useNavigate()
   const [isGenerating, setIsGenerating] = useState(false)
-  const [followUpError, setFollowUpError] = useState(false)
+  const [, setFollowUpError] = useState(false)
 
   const [questionIndex, setQuestionIndex] = useState(() => {
   const saved = sessionStorage.getItem('afterpadel-question-index')
