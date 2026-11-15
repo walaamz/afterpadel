@@ -49,7 +49,12 @@ export default function Register() {
         throw new Error('Registration failed. Please try again.')
       }
 
-      navigate('/login')
+      localStorage.setItem(
+  `afterpadel-onboarding-pending-${email.trim().toLowerCase()}`,
+  'true'
+)
+
+navigate('/login')
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Registration failed.'

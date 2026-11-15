@@ -16,6 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import CoachReview from "./pages/CoachReview";
 import Coach from "./pages/Coach";
 import CompareReflections from "./pages/CompareReflections";
+import OnboardingTour from './components/OnboardingTour'
 
 function App() {
   const navigate = useNavigate()
@@ -41,6 +42,47 @@ const unreadCount = notifications.filter(
 ).length
   const [loggedInName, setLoggedInName] = useState<string | null>(null)
   const [loggedInUserId, setLoggedInUserId] = useState<number | null>(null)
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null)
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
+
+useEffect(() => {
+  if (
+    loggedInUserId === null ||
+    loggedInEmail === null ||
+    location.pathname !== '/'
+  ) {
+    setOnboardingOpen(false)
+    return
+  }
+
+  const pendingKey =
+    `afterpadel-onboarding-pending-${loggedInEmail}`
+
+  const completedKey =
+    `afterpadel-onboarding-completed-${loggedInUserId}`
+
+  const pending = localStorage.getItem(pendingKey) === 'true'
+  const completed = localStorage.getItem(completedKey) === 'true'
+
+  setOnboardingOpen(pending && !completed)
+}, [loggedInUserId, loggedInEmail, location.pathname])
+
+function handleCompleteOnboarding() {
+  if (loggedInUserId !== null) {
+    localStorage.setItem(
+      `afterpadel-onboarding-completed-${loggedInUserId}`,
+      'true'
+    )
+  }
+
+  if (loggedInEmail !== null) {
+    localStorage.removeItem(
+      `afterpadel-onboarding-pending-${loggedInEmail}`
+    )
+  }
+
+  setOnboardingOpen(false)
+}
 
   useEffect(() => {
   async function loadNotifications() {
@@ -80,12 +122,14 @@ useEffect(() => {
       if (!response.ok) {
   setLoggedInName(null)
   setLoggedInUserId(null)
+  setLoggedInEmail(null)
   return
 }
 
 const user = await response.json()
 setLoggedInName(user.fullName)
 setLoggedInUserId(user.id)
+setLoggedInEmail(user.email.trim().toLowerCase())
     } catch {
       setLoggedInName(null)
       setLoggedInUserId(null)
@@ -109,7 +153,8 @@ const [latestInsights, setLatestInsights] = useState({
   challenge: '',
 })
 const [totalReflections, setTotalReflections] = useState(0)
-  const [draftModalOpen, setDraftModalOpen] = useState(false)
+const [reflectionsLoading, setReflectionsLoading] = useState(true)
+const [draftModalOpen, setDraftModalOpen] = useState(false)
 
 function hasUnfinishedReflection() {
   // Check whether session details have been saved
@@ -164,8 +209,9 @@ async function handleSignOut() {
     }
 
     setLoggedInName(null)
-setLoggedInUserId(null)
-navigate('/login')
+    setLoggedInUserId(null)
+    setLoggedInEmail(null)
+    navigate('/login')
   } catch (error) {
     console.error('Error signing out:', error)
     alert('Unable to sign out. Please try again.')
@@ -232,6 +278,7 @@ useEffect(() => {
 
 useEffect(() => {
   async function loadRecentReflections() {
+    setReflectionsLoading(true)
     try {
       const response = await fetch('http://localhost:8080/api/reflections', {
   credentials: 'include',
@@ -268,8 +315,10 @@ setLatestInsights({
 
       setRecentReflections(recent)
     } catch (error) {
-      console.error('Error loading recent reflections:', error)
-    }
+  console.error('Error loading recent reflections:', error)
+} finally {
+  setReflectionsLoading(false)
+}
   }
 
     loadRecentReflections()
@@ -451,8 +500,26 @@ async function handleNotificationClick(notification: AppNotification) {
     element={
       <main className="dashboard" id="dashboard">
         <section className="welcome">
-          <h1>Welcome Back, {loggedInName ?? username}!</h1>
-          <p>Every match is an opportunity to learn something new.</p>
+{reflectionsLoading ? (
+  <>
+    <h1>Loading your dashboard...</h1>
+    <p>Getting everything ready for you.</p>
+  </>
+) : (
+  <>
+    <h1>
+      {totalReflections === 0
+        ? `Welcome to AfterPadel, ${loggedInName ?? username}!`
+        : `Welcome Back, ${loggedInName ?? username}!`}
+    </h1>
+
+    <p>
+      {totalReflections === 0
+        ? 'Your journey to a more intentional game starts here.'
+        : 'Every match is an opportunity to learn something new.'}
+    </p>
+  </>
+)}
           <button
   className="primary-button"
   onClick={handleStartReflection}
@@ -482,7 +549,8 @@ async function handleNotificationClick(notification: AppNotification) {
   ))
 ) : (
   <p className="card-description">
-    No reflections saved yet.
+    Your match reflections will appear here.
+    Start by recording your first session.
   </p>
 )}
 
@@ -516,10 +584,12 @@ async function handleNotificationClick(notification: AppNotification) {
       </NavLink>
     </>
   ) : (
-    <p className="card-description">
-      Your insights will appear here after you save a reflection.
-    </p>
-  )}
+  <p className="card-description">
+    {totalReflections === 0
+      ? 'Discover your strengths and areas for improvement as you reflect on your matches.'
+      : 'Your insights will appear here as you build your reflection history.'}
+  </p>
+)}
 </article>
           <article className="dashboard-card">
   <h2>Your Progress</h2>
@@ -534,6 +604,7 @@ async function handleNotificationClick(notification: AppNotification) {
     Reflections Completed
     <span>{totalReflections} reflections</span>
   </p>
+  
 
   <NavLink className="card-link" to="/progress">
     View Progress →
@@ -566,6 +637,9 @@ async function handleNotificationClick(notification: AppNotification) {
   <Route path="/reflection/saved" element={<ReflectionSaved />} />
 </Route>
 </Routes>
+{onboardingOpen && (
+  <OnboardingTour onComplete={handleCompleteOnboarding} />
+)}
     {draftModalOpen && (
   <div
     className="draft-modal-overlay"

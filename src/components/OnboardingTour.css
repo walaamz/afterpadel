@@ -1,0 +1,98 @@
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.onboarding-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #f3f1df;
+  border-radius: 18px;
+  padding: 36px 30px 30px;
+  text-align: center;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.2);
+}
+
+.onboarding-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: #cdd1ba;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  margin: 0 auto 22px;
+}
+
+.onboarding-modal h2 {
+  font-size: 23px;
+  color: #40543c;
+  margin: 0 0 12px;
+}
+
+.onboarding-modal p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #617d98;
+  min-height: 72px;
+  margin: 0 0 24px;
+}
+
+.onboarding-progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 28px;
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 20px;
+  background: #cdd1ba;
+  transition: all 0.2s ease;
+}
+
+.onboarding-dot.active {
+  width: 24px;
+  background: #8e9f85;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.onboarding-actions button {
+  flex: 1;
+  padding: 13px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onboarding-secondary {
+  background: transparent;
+  border: 1px solid #8e9f85;
+  color: #40543c;
+}
+
+.onboarding-primary {
+  background: #8e9f85;
+  border: 1px solid #8e9f85;
+  color: white;
+}
+
+.onboarding-primary:hover {
+  background: #40543c;
+}

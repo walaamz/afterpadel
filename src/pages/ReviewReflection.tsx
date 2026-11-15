@@ -126,8 +126,17 @@ async function handleApprove() {
   setError('')
   setIsSaving(true)
 
+  
+let submissionId = sessionStorage.getItem('afterpadel-submission-id')
+
+if (!submissionId) {
+  submissionId = crypto.randomUUID()
+  sessionStorage.setItem('afterpadel-submission-id', submissionId)
+}
+
   const backendReflection = {
-    sessionType: session.sessionType,
+  submissionId,
+  sessionType: session.sessionType,
     date: session.date,
     duration: session.duration ? Number(session.duration) : null,
     score: session.score || null,
@@ -182,6 +191,7 @@ async function handleApprove() {
     sessionStorage.removeItem('afterpadel-followups-shown')
     sessionStorage.removeItem('afterpadel-question-index')
     sessionStorage.removeItem('afterpadel-draft-step')
+    sessionStorage.removeItem('afterpadel-submission-id')
     sessionStorage.removeItem('afterpadel-satisfaction')
 
     navigate('/reflection/saved', {

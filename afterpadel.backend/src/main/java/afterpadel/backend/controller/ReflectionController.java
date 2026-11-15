@@ -1,4 +1,3 @@
-
 package afterpadel.backend.controller;
 
 import afterpadel.backend.model.Reflection;
@@ -13,6 +12,7 @@ import afterpadel.backend.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import afterpadel.backend.model.Notification;
 import afterpadel.backend.repository.NotificationRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -60,11 +60,29 @@ public class ReflectionController {
     }
 
     @PostMapping
+    @Transactional
     public Reflection createReflection(
             @Valid @RequestBody Reflection reflection,
             Authentication authentication
     ) {
         User user = getCurrentUser(authentication);
+
+        String submissionId = reflection.getSubmissionId();
+
+        if (submissionId == null || submissionId.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Submission ID is required."
+            );
+        }
+
+        Reflection existing = reflectionRepository
+                .findBySubmissionIdAndUserId(submissionId, user.getId())
+                .orElse(null);
+
+        if (existing != null) {
+            return existing;
+        }
 
         reflection.setId(null);
         reflection.setCreatedAt(LocalDateTime.now());
@@ -85,6 +103,7 @@ public class ReflectionController {
 
         return savedReflection;
     }
+
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

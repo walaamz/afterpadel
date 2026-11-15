@@ -1,4 +1,3 @@
-
 package afterpadel.backend.model;
 
 import jakarta.persistence.*;
@@ -9,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "reflections")
@@ -21,6 +21,18 @@ public class Reflection {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "submission_id", unique = true, length = 36)
+    private String submissionId;
+
+    public String getSubmissionId() {
+        return submissionId;
+    }
+
+    public void setSubmissionId(String submissionId) {
+        this.submissionId = submissionId;
+    }
+
 
     private LocalDateTime createdAt;
 
@@ -39,27 +51,36 @@ public class Reflection {
 
     private String sessionFocus;
 
+
+    @Size(max = 5000, message = "Reflection must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String wentWell;
 
+    @Size(max = 5000, message = "Follow-up response must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String wentWellFollowUp;
 
+    @Size(max = 5000, message = "Reflection must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String struggledWith;
 
+    @Size(max = 5000, message = "Follow-up response must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String struggledWithFollowUp;
 
+    @Size(max = 5000, message = "Reflection must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String doDifferently;
 
+    @Size(max = 5000, message = "Follow-up response must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String doDifferentlyFollowUp;
 
+    @Size(max = 5000, message = "Reflection must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String nextFocus;
 
+    @Size(max = 5000, message = "Follow-up response must not exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String nextFocusFollowUp;
 

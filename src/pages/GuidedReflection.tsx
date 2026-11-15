@@ -37,6 +37,7 @@ const emptyAnswers: ReflectionAnswer[] = questions.map(() => ({
 export default function GuidedReflection() {
   const navigate = useNavigate()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [followUpError, setFollowUpError] = useState(false)
 
   const [questionIndex, setQuestionIndex] = useState(() => {
   const saved = sessionStorage.getItem('afterpadel-question-index')
@@ -103,15 +104,16 @@ async function generateFollowUp() {
 
   try {
     const response = await fetch('http://localhost:8080/api/followup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        answer: current.answer,
-        question: questions[questionIndex].title,
-      }),
-    })
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  signal: AbortSignal.timeout(10000),
+  body: JSON.stringify({
+    answer: current.answer,
+    question: questions[questionIndex].title,
+  }),
+})
 
     if (!response.ok) {
       throw new Error('Failed to generate follow-up')
@@ -136,11 +138,33 @@ async function generateFollowUp() {
 
     revealFollowUp()
   } catch (error) {
-    console.error('Follow-up generation failed:', error)
-    alert('Unable to generate a follow-up question. Please try again.')
-  } finally {
-    setIsGenerating(false)
-  }
+  console.error('Follow-up generation failed:', error)
+
+  setFollowUpError(true)
+
+  setAnswers((previous) => {
+    const updated = previous.map((item, index) =>
+      index === questionIndex
+        ? {
+            ...item,
+            followUpQuestion: '',
+            followUp: '',
+          }
+        : item
+    )
+
+    sessionStorage.setItem(
+      'afterpadel-answers',
+      JSON.stringify(updated)
+    )
+
+    return updated
+  })
+
+  revealFollowUp()
+} finally {
+  setIsGenerating(false)
+}
 }
 
   const current = answers[questionIndex]
@@ -242,11 +266,17 @@ async function generateFollowUp() {
               Let's explore that a little further.
             </p>
 
-            <p className="ai-question">
-  {current.followUpQuestion ||
-    'Can you describe a specific moment from your session?'}
-</p>
-
+            {current.followUpQuestion ? (
+  <p className="ai-question">
+    {current.followUpQuestion}
+  </p>
+) : (
+  <p className="ai-question">
+    AI follow-up is temporarily unavailable.
+    You can continue your reflection without it.
+  </p>
+)}
+          {current.followUpQuestion && (
             <textarea
               className="reflection-textarea followup-textarea"
               placeholder="Write your response..."
@@ -255,6 +285,7 @@ async function generateFollowUp() {
                 updateAnswer('followUp', event.target.value)
               }
             />
+            )}
 
             <button
               type="button"
